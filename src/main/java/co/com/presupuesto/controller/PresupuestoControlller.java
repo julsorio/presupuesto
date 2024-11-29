@@ -1,0 +1,65 @@
+package co.com.presupuesto.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import co.com.presupuesto.dto.entrada.EntradaUploadDto;
+import co.com.presupuesto.dto.entrada.MessageDataDto;
+import co.com.presupuesto.dto.salida.ResponseDataDto;
+import co.com.presupuesto.dto.salida.ResultDataDto;
+import co.com.presupuesto.dto.salida.SalidaUploadDto;
+import co.com.presupuesto.service.PresupuestoService;
+
+@RestController
+@RequestMapping(path = "/api")
+public class PresupuestoControlller {
+
+	@Autowired
+	private PresupuestoService presupuestoService;
+
+	@PostMapping("/upload")
+	public ResponseDataDto<SalidaUploadDto> uploadFile(@RequestPart("entrada") MessageDataDto<EntradaUploadDto> entrada, @RequestPart("file") MultipartFile file) {
+
+		System.out.println("inicio PresupuestoControlller.uploadFile");
+
+		ResponseDataDto<SalidaUploadDto> respuesta = new ResponseDataDto<>();
+		SalidaUploadDto resultado = null;
+
+		try {
+			entrada.getData().setFile(file);
+			resultado = presupuestoService.subirFichero(entrada.getData());
+			respuesta.setResponse(resultado);
+			ResultDataDto resultData = new ResultDataDto();
+			resultData.setResponseCode(HttpStatus.OK.toString());
+			resultData.setResponseText("OK");
+			respuesta.setResultData(resultData);
+		} catch (Exception e) {
+			System.out.println("error en uploadFile " + e.getMessage());
+		}
+
+		System.out.println("fin PresupuestoControlller.uploadFile");
+
+		return respuesta;
+
+	}
+	
+	@PostMapping("/iniciarCarga")
+	public ResponseDataDto<SalidaUploadDto> startUpload() {
+		ResponseDataDto<SalidaUploadDto> respuesta = new ResponseDataDto<>();
+		
+		SalidaUploadDto resultado = presupuestoService.cargarFicheros();
+		
+		respuesta.setResponse(resultado);
+		ResultDataDto resultData = new ResultDataDto();
+		resultData.setResponseCode(HttpStatus.OK.toString());
+		resultData.setResponseText("OK");
+		respuesta.setResultData(resultData);
+		
+		return respuesta;
+	}
+}
