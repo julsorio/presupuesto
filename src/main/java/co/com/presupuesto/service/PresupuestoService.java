@@ -6,5 +6,5 @@ import co.com.presupuesto.dto.salida.SalidaUploadDto;
 public interface PresupuestoService {
 	public SalidaUploadDto subirFichero(EntradaUploadDto entrada);
 	
-	public SalidaUploadDto cargarFicheros();
+	public SalidaUploadDto cargarFicheros() throws Exception;
 }

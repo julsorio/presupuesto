@@ -10,21 +10,40 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import co.com.presupuesto.constants.PresupuestoConstants;
 import co.com.presupuesto.dto.entrada.EntradaUploadDto;
 import co.com.presupuesto.dto.salida.SalidaUploadDto;
+import co.com.presupuesto.entity.FicheroCargado;
 import co.com.presupuesto.entity.Movimiento;
+import co.com.presupuesto.entity.TipoMovimiento;
+import co.com.presupuesto.repository.FicheroCargadoRepository;
+import co.com.presupuesto.repository.MovimientoRepository;
+import co.com.presupuesto.repository.TipoMovimientoRepository;
 
 @Service
 public class PresupuestoServiceImpl implements PresupuestoService {
 	@Value("${filePath}")
 	private String basePath;
+	
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	
+	@Autowired
+	private TipoMovimientoRepository tipoMovimientoRepository;
+	
+	@Autowired
+	private MovimientoRepository movimientoRepository;
+	
+	@Autowired
+	private FicheroCargadoRepository ficheroCargadoRepository;
 
 	@Override
 	public SalidaUploadDto subirFichero(EntradaUploadDto entrada) {
@@ -54,7 +73,7 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 	}
 
 	@Override
-	public SalidaUploadDto cargarFicheros() {
+	public SalidaUploadDto cargarFicheros() throws Exception {
 		System.out.println("inicio PresupuestoService.cargarFicheros");
 		
 		SalidaUploadDto salida = new SalidaUploadDto();
@@ -65,16 +84,30 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 			return salida;
 		}
 		
-		Set<String> test = Stream.of(new File(basePath).listFiles((dir, name) -> name.endsWith(".csv")))
+		Set<String> listaFicheros = Stream.of(new File(basePath).listFiles((dir, name) -> name.endsWith(".csv")))
 	      .filter(file -> !file.isDirectory())
 	      .map(File::getAbsolutePath)
 	      .collect(Collectors.toSet());
 		
 		
-		test.forEach(a -> {
-			//System.out.println(a);
+		listaFicheros.forEach(fichero -> {
+			//validar fichero
+			FicheroCargado ficheroCargado = null;
+			Optional<FicheroCargado> ficheroCargadoOp = ficheroCargadoRepository.findByNombreFichero(fichero);
+			if(ficheroCargadoOp.isPresent()) {
+				//throw new Exception("El fichero " + fichero + " ya ha sido cargado en la BD");
+				System.out.println("El fichero " + fichero + " ya ha sido cargado en la BD");
+			} else {
+				//el fichero no ha sido procesado
+				ficheroCargado = new FicheroCargado();
+				ficheroCargado.setFechaCarga(Calendar.getInstance().getTime());
+				ficheroCargado.setNombreFichero(fichero);
+				
+				ficheroCargadoRepository.save(ficheroCargado);
+				
+			}
 			
-			try (BufferedReader br = new BufferedReader(new FileReader(a))) {
+			try (BufferedReader br = new BufferedReader(new FileReader(fichero))) {
 				// read line by line
 				String line;
 				while ((line = br.readLine()) != null) {
@@ -97,8 +130,6 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 	private void procesarRegistro(String registro) {
 		System.out.println("inicio PresupuestoService.procesarRegistro");
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
-		
 		String[] data = registro.split(",");
 		
 		Movimiento movimiento = new Movimiento();
@@ -118,9 +149,17 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 		//valor
 		movimiento.setValorMovimiento(new BigDecimal(data[4]));
 		
-		movimiento.setTipoMovimiento(null);
+		Optional<TipoMovimiento> tipoMovimientoOp;
+		if(movimiento.getValorMovimiento().compareTo(BigDecimal.ZERO) == -1) {
+			tipoMovimientoOp = tipoMovimientoRepository.findByNombre(PresupuestoConstants.TIPO_MOVIMIENTO_DEBITO);
+			
+		} else {
+			tipoMovimientoOp = tipoMovimientoRepository.findByNombre(PresupuestoConstants.TIPO_MOVIMIENTO_CREDITO);
+		}
 		
-		System.out.println(movimiento);
+		movimiento.setTipoMovimiento(tipoMovimientoOp.get());
+		
+		movimientoRepository.save(movimiento);
 		
 		System.out.println("fin PresupuestoService.procesarRegistro");
 		

@@ -51,14 +51,23 @@ public class PresupuestoControlller {
 	@PostMapping("/iniciarCarga")
 	public ResponseDataDto<SalidaUploadDto> startUpload() {
 		ResponseDataDto<SalidaUploadDto> respuesta = new ResponseDataDto<>();
+		SalidaUploadDto resultado = null;
+		try {
+			resultado = presupuestoService.cargarFicheros();
+			respuesta.setResponse(resultado);
+			ResultDataDto resultData = new ResultDataDto();
+			resultData.setResponseCode(HttpStatus.OK.toString());
+			resultData.setResponseText("OK");
+			respuesta.setResultData(resultData);
+			
+		} catch (Exception e) {
+			respuesta.setResponse(null);
+			ResultDataDto resultData = new ResultDataDto();
+			resultData.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			resultData.setResponseText("KO");
+			respuesta.setResultData(resultData);
+		}
 		
-		SalidaUploadDto resultado = presupuestoService.cargarFicheros();
-		
-		respuesta.setResponse(resultado);
-		ResultDataDto resultData = new ResultDataDto();
-		resultData.setResponseCode(HttpStatus.OK.toString());
-		resultData.setResponseText("OK");
-		respuesta.setResultData(resultData);
 		
 		return respuesta;
 	}

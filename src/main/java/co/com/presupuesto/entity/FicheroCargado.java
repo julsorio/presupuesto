@@ -45,6 +45,19 @@ public class FicheroCargado {
 	public void setNombreFichero(String nombreFichero) {
 		this.nombreFichero = nombreFichero;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("FicheroCargado [id=");
+		builder.append(id);
+		builder.append(", fechaCarga=");
+		builder.append(fechaCarga);
+		builder.append(", nombreFichero=");
+		builder.append(nombreFichero);
+		builder.append("]");
+		return builder.toString();
+	}
 	
 	
 

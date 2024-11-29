@@ -40,6 +40,19 @@ public class TipoMovimiento {
 	public void setDescripcion(String descripcion) {
 		this.descripcion = descripcion;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("TipoMovimiento [id=");
+		builder.append(id);
+		builder.append(", nombre=");
+		builder.append(nombre);
+		builder.append(", descripcion=");
+		builder.append(descripcion);
+		builder.append("]");
+		return builder.toString();
+	}
 	
 	
 
