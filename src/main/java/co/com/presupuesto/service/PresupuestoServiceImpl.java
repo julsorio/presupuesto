@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -73,8 +75,8 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 	}
 
 	@Override
-	public SalidaUploadDto cargarFicheros() throws Exception {
-		System.out.println("inicio PresupuestoService.cargarFicheros");
+	public SalidaUploadDto cargarFicherosCsv() throws Exception {
+		System.out.println("inicio PresupuestoService.cargarFicherosCsv");
 		
 		SalidaUploadDto salida = new SalidaUploadDto();
 		File path = new File(basePath);
@@ -122,7 +124,7 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 			}
 		});
 		
-		System.out.println("fin PresupuestoService.cargarFicheros");
+		System.out.println("fin PresupuestoService.cargarFicherosCsv");
 		
 		return salida;
 	}
@@ -163,5 +165,36 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 		
 		System.out.println("fin PresupuestoService.procesarRegistro");
 		
+	}
+
+	@Override
+	public SalidaUploadDto cargarFicherosPdf() throws Exception {
+		System.out.println("inicio PresupuestoService.cargarFicherosPdf");
+		
+		SalidaUploadDto salida = new SalidaUploadDto();
+		File path = new File(basePath);
+		
+		if(!path.isDirectory()) {
+			salida.setResultado("path no es un directorio");
+			return salida;
+		}
+		
+		Set<String> listaFicheros = Stream.of(new File(basePath).listFiles((dir, name) -> name.endsWith(".pdf")))
+	      .filter(file -> !file.isDirectory())
+	      .map(File::getAbsolutePath)
+	      .collect(Collectors.toSet());
+		
+		listaFicheros.forEach(fichero -> {
+			try (PDDocument document = PDDocument.load(new File(fichero))) {
+	            PDFTextStripper textStripper = new PDFTextStripper();
+	            String text = textStripper.getText(document);
+	            System.out.println("Extracted Text:\n" + text);
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+		});
+		
+		System.out.println("fin PresupuestoService.cargarFicherosPdf");
+		return null;
 	}
 }

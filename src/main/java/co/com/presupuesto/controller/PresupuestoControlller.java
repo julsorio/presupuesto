@@ -53,7 +53,7 @@ public class PresupuestoControlller {
 		ResponseDataDto<SalidaUploadDto> respuesta = new ResponseDataDto<>();
 		SalidaUploadDto resultado = null;
 		try {
-			resultado = presupuestoService.cargarFicheros();
+			resultado = presupuestoService.cargarFicherosCsv();
 			respuesta.setResponse(resultado);
 			ResultDataDto resultData = new ResultDataDto();
 			resultData.setResponseCode(HttpStatus.OK.toString());
@@ -70,5 +70,29 @@ public class PresupuestoControlller {
 		
 		
 		return respuesta;
+	}
+	
+	@PostMapping("/cargarPdf")
+	public void uploadPdf() {
+		ResponseDataDto<SalidaUploadDto> respuesta = new ResponseDataDto<>();
+		SalidaUploadDto resultado = null;
+		try {
+			resultado = presupuestoService.cargarFicherosPdf();
+			respuesta.setResponse(resultado);
+			ResultDataDto resultData = new ResultDataDto();
+			resultData.setResponseCode(HttpStatus.OK.toString());
+			resultData.setResponseText("OK");
+			respuesta.setResultData(resultData);
+			
+		} catch (Exception e) {
+			respuesta.setResponse(null);
+			ResultDataDto resultData = new ResultDataDto();
+			resultData.setResponseCode(HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			resultData.setResponseText("KO");
+			respuesta.setResultData(resultData);
+		}
+		
+		
+		//return respuesta;
 	}
 }
