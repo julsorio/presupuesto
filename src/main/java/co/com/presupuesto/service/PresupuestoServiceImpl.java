@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import co.com.presupuesto.constants.PresupuestoConstants;
+import co.com.presupuesto.dto.entrada.EntradaConsultaMovimientosDto;
 import co.com.presupuesto.dto.entrada.EntradaUploadDto;
 import co.com.presupuesto.dto.salida.SalidaUploadDto;
 import co.com.presupuesto.entity.FicheroCargado;
@@ -196,5 +197,28 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 		
 		System.out.println("fin PresupuestoService.cargarFicherosPdf");
 		return null;
+	}
+	
+	public void consultaMovimientos(EntradaConsultaMovimientosDto filtroConsMov) {
+		System.out.println("inicio PresupuestoService.consultaMovimientos");
+		
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT o.* FROM Movimiento o WHERE ");
+		
+		if(filtroConsMov.getFechaInicio() == null || filtroConsMov.getFechaFin() == null) {
+			//TODO error
+		} else {
+			query.append(" o.fechaMovimiento BETWEEN :fechaInicio AND :fechaFin ");
+		}
+		
+		if(filtroConsMov.getTipoMovimiento() != null && !filtroConsMov.getTipoMovimiento().isEmpty()) {
+			query.append(" AND o.tipoMovimiento.nombre = :tipoMov");
+		}
+		
+		System.out.println("query " + query.toString());
+		
+		movimientoRepository.
+		
+		System.out.println("fin PresupuestoService.consultaMovimientos");
 	}
 }
