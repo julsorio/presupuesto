@@ -1,3 +1,7 @@
+DROP TABLE countries IF EXISTS;
+
+CREATE TABLE countries(id INTEGER PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100) NOT NULL);
+
 CREATE TABLE `presupuestodb`.`fichero_cargado` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `fecha_carga` DATE NOT NULL,
