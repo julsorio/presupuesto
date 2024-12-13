@@ -9,7 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ import java.util.stream.Stream;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import org.springframework.stereotype.Service;
 import co.com.presupuesto.constants.PresupuestoConstants;
 import co.com.presupuesto.dto.entrada.EntradaConsultaMovimientosDto;
 import co.com.presupuesto.dto.entrada.EntradaUploadDto;
+import co.com.presupuesto.dto.salida.SalidaMovimientoDto;
 import co.com.presupuesto.dto.salida.SalidaUploadDto;
 import co.com.presupuesto.entity.FicheroCargado;
 import co.com.presupuesto.entity.Movimiento;
@@ -47,7 +51,13 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 	
 	@Autowired
 	private FicheroCargadoRepository ficheroCargadoRepository;
-
+	
+	/*@Autowired
+	private MovimientoMapper movimientoMapper;*/
+	
+	@Autowired
+	private ModelMapper modelMapper;
+	
 	@Override
 	public SalidaUploadDto subirFichero(EntradaUploadDto entrada) {
 		System.out.println("inicio PresupuestoService.subirFichero");
@@ -199,26 +209,37 @@ public class PresupuestoServiceImpl implements PresupuestoService {
 		return null;
 	}
 	
-	public void consultaMovimientos(EntradaConsultaMovimientosDto filtroConsMov) {
+	public List<SalidaMovimientoDto> consultaMovimientos(EntradaConsultaMovimientosDto filtroConsMov) {
 		System.out.println("inicio PresupuestoService.consultaMovimientos");
 		
-		StringBuilder query = new StringBuilder();
-		query.append("SELECT o.* FROM Movimiento o WHERE ");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		
+		List<Movimiento> listaMovimientos = new ArrayList<>();
+		List<SalidaMovimientoDto> salida = new ArrayList<>();
 		
 		if(filtroConsMov.getFechaInicio() == null || filtroConsMov.getFechaFin() == null) {
 			//TODO error
 		} else {
-			query.append(" o.fechaMovimiento BETWEEN :fechaInicio AND :fechaFin ");
+			try {
+				//listaMovimientos = movimientoRepository.getListaMovimientos(sdf.parse(filtroConsMov.getFechaInicio()), sdf.parse(filtroConsMov.getFechaFin()));
+				listaMovimientos = movimientoRepository.getListaMovimientos(filtroConsMov.getFechaInicio(), filtroConsMov.getFechaFin());
+				
+				if(listaMovimientos.isEmpty()) {
+					//TODO error
+				} else {
+					listaMovimientos.forEach(mov -> {
+						//SalidaMovimientoDto resultado = movimientoMapper.toDto(mov);
+						SalidaMovimientoDto resultado = modelMapper.map(mov, SalidaMovimientoDto.class);
+						salida.add(resultado);
+					});
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
 		}
-		
-		if(filtroConsMov.getTipoMovimiento() != null && !filtroConsMov.getTipoMovimiento().isEmpty()) {
-			query.append(" AND o.tipoMovimiento.nombre = :tipoMov");
-		}
-		
-		System.out.println("query " + query.toString());
-		
-		movimientoRepository.
 		
 		System.out.println("fin PresupuestoService.consultaMovimientos");
+		
+		return salida;
 	}
 }

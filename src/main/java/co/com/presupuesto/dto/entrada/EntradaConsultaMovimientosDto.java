@@ -1,10 +1,14 @@
 package co.com.presupuesto.dto.entrada;
 
+import java.util.Date;
+
 public class EntradaConsultaMovimientosDto {
+	// @JsonFormat(pattern = "yyyy-MM-dd")
 	private Date fechaInicio;
+	// @JsonFormat(pattern = "yyyy-MM-dd")
 	private Date fechaFin;
 	private String tipoMovimiento;
-	
+
 	public EntradaConsultaMovimientosDto() {
 		// TODO Auto-generated constructor stub
 	}
@@ -33,7 +37,4 @@ public class EntradaConsultaMovimientosDto {
 		this.tipoMovimiento = tipoMovimiento;
 	}
 
-	
-	
-	
 }
